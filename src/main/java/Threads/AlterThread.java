@@ -8,12 +8,12 @@ public class AlterThread implements Runnable {
 	public AlterThread(Integer quantity) {
 		this.quantity = quantity;
 	}
-
 	@Override
-	//Synchronized to solve the RC
-	public void run() {
-		int current = ProductService.productToSave.getQuantity();
-		int newValue = current + quantity;
-		ProductService.productToSave.setQuantity(newValue);
+	public void  run() {
+		try {			
+			ProductService.read_modify_write(quantity);
+		}finally {
+			ProductService.latch.countDown();
+		}
 	}
 }

@@ -3,6 +3,7 @@ package com.example.demo.Services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,16 +22,41 @@ public class ProductService {
 
 	private final List<Thread> threads = new ArrayList<>();
 
-	public static  Product productToSave = null;
-
+	public static Product productToSave = null;
+	
+	public static CountDownLatch latch;
+	
+	public static void read_modify_write(int quantity) {
+		
+		synchronized (productToSave) {
+			int current = productToSave.getQuantity();
+//			try {
+//				Thread.sleep(10 * (int)(Math.random() * 10));
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+			int newValue  = current + quantity;
+			ProductService.productToSave.setQuantity(newValue);			
+		}
+	}
+	
 	public ResponseEntity<String> runThreads() {
+		latch = new CountDownLatch(threads.size());
+		System.out.println(latch.getCount());
+		int counter  = 0;
 		for (Thread task : threads) {
+			counter++;
 			task.start();
 		}
-		productReposirty.save(productToSave);
+		try {
+			latch.await();
+		}catch (InterruptedException exp) {
+			exp.printStackTrace();
+		}
+		int totalThreadCount = threads.size();
 		threads.clear();
-		productToSave = null;
-		return ResponseEntity.ok("All threads have ran sucessfully");
+		productReposirty.save(productToSave);
+		return ResponseEntity.ok("\n" + counter + " threads have ran sucessfully out of : " + totalThreadCount + '\n');
 	}
 
 	public ResponseEntity<String> alter_product_quantity(Integer quantity, Long p_id) {
