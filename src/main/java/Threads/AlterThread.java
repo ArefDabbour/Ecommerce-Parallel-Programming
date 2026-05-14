@@ -10,6 +10,7 @@ public class AlterThread implements Runnable {
 	}
 
 	@Override
+	//Synchronized to solve the RC
 	public void run() {
 		int current = ProductService.productToSave.getQuantity();
 		int newValue = current + quantity;
