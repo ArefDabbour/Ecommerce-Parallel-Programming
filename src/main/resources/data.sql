@@ -1,0 +1,3 @@
+--insert into 
+--customer(name)
+--values('aref');
