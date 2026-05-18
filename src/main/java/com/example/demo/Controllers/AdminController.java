@@ -39,9 +39,9 @@ public class AdminController {
 		return productService.alter_product_name(newName, p_id);
 	}
 
-	@PostMapping("/alter-product/price/{p_id}")
-	public String alter_product_price(@RequestBody Float newPrice, @PathVariable Long p_id) {
-		return null;
+	@PostMapping("/alter-product/price/{p_id}/{price}")
+	public ResponseEntity<String> alter_product_price( @PathVariable Long p_id, @PathVariable Float price) {
+		return productService.alter_product_price(price, p_id);
 	}
 
 	@PostMapping("/alter-product/quantity/{p_id}")

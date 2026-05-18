@@ -22,19 +22,17 @@ public class ProductService {
 	@Autowired
 	ProductReposirty productReposirty;
 
-	
-	@Autowired 
+	@Autowired
 	PurchaseOrederRepository purchaseOrederRepository;
-	
-	
+
 	private final List<Thread> threads = new ArrayList<>();
 
 	public static Product productToSave = null;
-	
+
 	public static CountDownLatch latch;
-	
+
 	public static void read_modify_write(int quantity) {
-		
+
 		synchronized (productToSave) {
 			int current = productToSave.getQuantity();
 //			try {
@@ -42,22 +40,22 @@ public class ProductService {
 //			} catch (InterruptedException e) {
 //				e.printStackTrace();
 //			}
-			int newValue  = current + quantity;
-			ProductService.productToSave.setQuantity(newValue);			
+			int newValue = current + quantity;
+			ProductService.productToSave.setQuantity(newValue);
 		}
 	}
-	
+
 	public ResponseEntity<String> runThreads() {
 		latch = new CountDownLatch(threads.size());
 		System.out.println(latch.getCount());
-		int counter  = 0;
+		int counter = 0;
 		for (Thread task : threads) {
 			counter++;
 			task.start();
 		}
 		try {
 			latch.await();
-		}catch (InterruptedException exp) {
+		} catch (InterruptedException exp) {
 			exp.printStackTrace();
 		}
 		int totalThreadCount = threads.size();
@@ -69,7 +67,7 @@ public class ProductService {
 	public ResponseEntity<String> alter_product_quantity(Integer quantity, Long p_id) {
 		Optional<Product> product = productReposirty.findById(p_id);
 		if (product.isPresent()) {
-			if(productToSave == null) {
+			if (productToSave == null) {
 				productToSave = product.get();
 			}
 			threads.add(new Thread(new AlterThread(quantity)));
@@ -105,19 +103,54 @@ public class ProductService {
 		}
 	}
 
-	public String alter_product_price(Float price, Long p_id) {
-		Optional<Product> product = productReposirty.findById(p_id);
-		if (product.isPresent()) {
-			product.get().setPrice(price);
-			productReposirty.save(product.get());
-			return "Price was altered sucessfully";
-		} else {
-			return "No such product";
+	public static Object priceLock = new Object();
+
+	private Server server_1 = new Server((byte) 1);
+
+	private Server server_2 = new Server((byte) 2);
+
+	private Server server_3 = new Server((byte) 3);
+
+	private byte currenetServer = 1;
+
+	public ResponseEntity<String> alter_product_price(Float price, Long p_id) {
+		boolean served = false;
+		// Round Robin
+		switch (currenetServer) {
+		case 1: {
+			if (server_1.serve(productReposirty, price, p_id) != -1) {
+				served = true;
+				currenetServer = 2;
+				break;
+			}
+			System.out.println("Server 1 is busy");
 		}
+		case 2: {
+			if (server_2.serve(productReposirty, price, p_id) != -1) {
+				served = true;
+				currenetServer = 3;
+				break;
+			}
+			System.out.println("Server 2 is busy");
+		}
+		case 3: {
+			if (server_3.serve(productReposirty, price, p_id) != -1) {
+				served = true;
+				currenetServer = 1;
+				break;
+			}
+			System.out.println("Server 3 is busy");
+		}
+		}
+		if(served)
+			return ResponseEntity.ok("Done !! \n");
+		return  ResponseEntity.status(HttpStatus.INSUFFICIENT_STORAGE).body("Sorry all servers are busy re send your request again \n");
+
 	}
 
 	public void start_reports() {
 		Thread backgroundJob = new Thread(new SalesCalculationThread(purchaseOrederRepository));
 		backgroundJob.start();
 	}
+
 }
