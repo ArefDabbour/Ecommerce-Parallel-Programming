@@ -3,11 +3,13 @@ package com.example.demo.Services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.Entities.Product;
@@ -92,16 +94,17 @@ public class ProductService {
 		return productReposirty.findById(id).get();
 	}
 
-	public String alter_product_name(String name, Long p_id) {
-		Optional<Product> product = productReposirty.findById(p_id);
-		if (product.isPresent()) {
-			product.get().setName(name);
-			productReposirty.save(product.get());
-			return "Name was altered sucessfully";
-		} else {
-			return "No such product";
-		}
-	}
+    @Async("productTaskExecutor")
+    public CompletableFuture<String> alter_product_name(String name, Long p_id) {
+        Optional<Product> product = productReposirty.findById(p_id);
+        if (product.isPresent()) {
+            product.get().setName(name);
+            productReposirty.save(product.get());
+            return CompletableFuture.completedFuture("Name was altered successfully");
+        } else {
+            return CompletableFuture.completedFuture("No such product");
+        }
+    }
 
 	public static Object priceLock = new Object();
 

@@ -46,7 +46,6 @@ public class Server {
 		int i = alocateThread();
 		if (i == -1)
 			return (byte) i;
-
 		ServerThread thread = new ServerThread(productReposirty, price, p_id, server_number);
 		threads.add(i, thread);
 		new Thread(threads.get(i)).start();

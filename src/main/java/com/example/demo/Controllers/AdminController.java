@@ -1,5 +1,7 @@
 package com.example.demo.Controllers;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +37,7 @@ public class AdminController {
 	}
 
 	@PostMapping("/alter-product/name/{p_id}")
-	public String alter_product_name(@RequestBody String newName, @PathVariable Long p_id) {
+	public CompletableFuture alter_product_name(@RequestBody String newName, @PathVariable Long p_id) {
 		return productService.alter_product_name(newName, p_id);
 	}
 
