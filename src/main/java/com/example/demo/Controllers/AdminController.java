@@ -23,6 +23,11 @@ public class AdminController {
 	public ResponseEntity<String> runThread() {
 		return productService.runThreads();
 	}
+	
+	@GetMapping("/start-reports")
+	public void start_reports() {
+		productService.start_reports();
+	}
 
 	@PostMapping("/add-product")
 	public String add_product(@RequestBody Product product) {

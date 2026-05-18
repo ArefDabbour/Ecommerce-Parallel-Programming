@@ -12,14 +12,21 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.Entities.Product;
 import com.example.demo.Repositories.ProductReposirty;
+import com.example.demo.Repositories.PurchaseOrederRepository;
 
 import Threads.AlterThread;
+import Threads.SalesCalculationThread;
 
 @Service
 public class ProductService {
 	@Autowired
 	ProductReposirty productReposirty;
 
+	
+	@Autowired 
+	PurchaseOrederRepository purchaseOrederRepository;
+	
+	
 	private final List<Thread> threads = new ArrayList<>();
 
 	public static Product productToSave = null;
@@ -107,5 +114,10 @@ public class ProductService {
 		} else {
 			return "No such product";
 		}
+	}
+
+	public void start_reports() {
+		Thread backgroundJob = new Thread(new SalesCalculationThread(purchaseOrederRepository));
+		backgroundJob.start();
 	}
 }
