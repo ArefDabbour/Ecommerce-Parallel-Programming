@@ -2,7 +2,6 @@ package com.example.demo.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,10 +18,6 @@ public class AdminController {
 	@Autowired
 	ProductService productService;
 
-	@GetMapping("/run-threads")
-	public ResponseEntity<String> runThread() {
-		return productService.runThreads();
-	}
 
 	@PostMapping("/add-product")
 	public String add_product(@RequestBody Product product) {
